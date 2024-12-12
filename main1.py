@@ -242,7 +242,7 @@ class makeMatrix: #thủ tục để tạo ra 1 mảng ma trận ban đầu
         for i in range (0,3):
             for j in range(0, 3):
                 self.E[x + t[i]][y + t[j]] = 0
-                self.E[x + t[i]][y + t[j]].change("dis")
+                self.matrix[x + t[i]][y + t[j]].change("dis")
                 self.matrix[x + t[i]][y + t[j]].draw(win)
     def drawStart(self, mousepos): # hàm để vẽ ra điểm kết thúc ức điểm chúng ta cần tìm
         x=mousepos[0] //5
@@ -255,7 +255,7 @@ class makeMatrix: #thủ tục để tạo ra 1 mảng ma trận ban đầu
         for i in range (0,3):
             for j in range(0, 3):
                 self.E[x + t[i]][y + t[j]] = 0
-                self.E[x + t[i]][y + t[j]].change("sou")
+                self.matrix[x + t[i]][y + t[j]].change("sou")
                 self.matrix[x + t[i]][y + t[j]].draw(win)
         self.sets.put(self.start)
     def drawSE(self): # vẽ ra điểm đầu tien xuất phát tại mê cung
