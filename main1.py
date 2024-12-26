@@ -1,355 +1,327 @@
-# import pygame 
-# import math
-# import queue
-# class point:
-#     def __init__(self, x,y,old=None):
-#         self.x = x
-#         self.y = y
-#         self.G = 0
-#         self.H = 0
-#         self.old = old
-# #thư viện pygame
-#     def __gt__(self, other):
-#         if self.G + self.H >= other.G + other.H:
-#             return True
-#         else:
-#             return False
-# class smallbox:
-#     basecolor = (255,255,255)
-#     def __init__(self,x,y):
-#         self.x = x
-#         self.y = y
-#     def draw(self,win):
-#         pygame.draw.rect(win,(0,0,0),(self.x,self.y,5,5))
-#         pygame.draw.rect (win,self.basecolor,(self.x+1,self.y+1,3,3))
-#     def change(self,state): #khai báo các màu cho bài toán mê cung
-#         if state == "obs":
-#             self.basecolor=(34, 59, 245) #màu của chướng ngại vật xanh blue
-#         elif state == "sou":
-#             self.basecolor = (162, 50, 168) #màu của điểm xuất phát tím
-#         elif state == "dis":
-#             self.basecolor = (255,0,0) #màu ô cần tìm đỏ
-#         elif state == "check":
-#             self.basecolor = (245, 245, 34) #màu của các ô đã được duyệt vàng
-#         elif state == "road":
-#             self.basecolor = (224, 123, 57) # màu của tuyến đường tốt nhất da cam
-#         elif state == "uncheck":
-#             self.basecolor = (0,255,0) #màu của mấy ô đang chờ duyệt màu xanh lá cây
-# class Cell:
-#     def __init__(self, value):
-#         self.value = value
-#     def change(self,state):
-#         self.value = state
-# class makeMatrix: #thủ tục để tạo ra 1 mảng ma trận ban đầu
-#     def __init__(self,size):
-#         self.matrix=[]
-#         self.size = size
-#         self.start = point(0,0)
-#         self.end = None
-#         self.n = size[0]//5
-#         self.m = size[1]//5
-#         self.E= [[0 for _ in range(200)] for _ in range (200)]
-#         self.sets= queue.PriorityQueue()
-#         self.isFind = True
-#         for i in range(0, size[0]+5,5):
-#             b=[]
-#             for j in range(0,size[1]+5,5):
-#                 b.append(smallbox(i,j))
-#             self.matrix.append(b) #A*
-#     def drawEnd (self, mousepos): #hàm này để vẽ ra điểm kết thúc tức điểm chúng ta cần tìm
-#         x = mousePos[0] //5
-#         y = mousePos[1] //5
-#         self.matrix[x][y].change("dis")
-#         self.matrix[x][y].draw(win)
-#         self.start = point(x,y)
-#         self.E[x][y] = 0
-#         t = [1,0,-1]
-#         for i in range (0,3):
-#             for j in range(0, 3):
-#                 self.E[x + t[i]][y + t[j]].change("dis")
-#                 self.matrix[x + t[i]][y + t[j]].draw(win)
-#     def drawStart(self, mousepos): # hàm để vẽ ra điểm kết thúc ức điểm chúng ta cần tìm
-#         x=mousepos[0] //5
-#         y=mousepos[1] //5
-#         self.matrix[x][y].change("sou")
-#         self.matrix[x][y].draw(win)
-#         self.start = point(x,y)
-#         self.E[x][y] = 0
-#         t = [1,0,-1]
-#         for i in range (0,3):
-#             for j in range(0, 3):
-#                 self.E[x + t[i]][y + t[j]].change("sou")
-#                 self.matrix[x + t[i]][y + t[j]].draw(win)
-#         self.sets.put(self.start)
-#     def drawSE(self): # vẽ ra điểm đầu tien xuất phát tại mê cung
-#         self.matrix[self.start.x][self.start.y].draw(win)
-#         x = self.start.x
-#         y = self.start.y
-#         t = [1, 0, -1]
-#         for i in range(0, 3):
-#             for j in range (0, 3):
-#                 self.matrix[x + t[i]][y + t[j]]. change("sou")
-#                 self.matrix[x + t[i]][y + t[j]].draw(win)
-#     def draw(self, win , mouse,mousePos): #hàm để vexc chướng ngại vật cho mê cung thông qua chuột phải
-#         if mouse[0]:
-#             x=mousePos[0]//5
-#             y= mousePos[1]//5
-#             self.matrix[x][y].change("obs")
-#             self.matrix[x][y].draw(win)
-#             self.E[x][y]=-1
-#             t=[1,0,-1]
-#             for i in range (0,3):
-#                 for j in range (0, 3):
-#                     self.E[x+t[i]][y+t[j]] = -1
-#                     self.matrix[x+t[i]][y + t[j]].change("obs")
-#                     self.matrix[x + t[i]][y + t[j]].draw(win)
-#     def drawF(self,win):
-#         for i in range (0, self.size[0]//5+1):
-#             for j in range(0, self.size[1]//5 +1):
-#                 self.matrix[i][j].draw(win)
-#     def solve (self, win): #nơi chứa thuật toán A* chính
-#         self.drawSE()
-#         t = [1,0,-1]
-#         for i in range (0,3):
-#             for j in range (0,3):
-#                 self.E[self.end.x + t[i]][self.end.y + t[j]] =0
-#                 self.matrix[self.end.x + t[i]][self.end.y + t[j]].change("dis")
-#                 self.matrix[self.end.x + t[i]][self.end.y + t[j]].draw(win)
-#                 self.E[self.end.x][self.end.y]=0
-#         if self.isFind==False:
-#             return
-#         #print(self.isFind)
-#         p1=[0,0,1,-1]
-#         p2=[1,-1,0,0]
-#         k=self.sets.get()
-#         self.matrix[k.x][k.y].change("check") # duyệt qua các ô thì các ô sẽ chuyển sang màu vàng
-#         self.matrix[k.x][k.y].draw(win)
-#         for i in range(4):
-#             x=k.x + p1[i]
-#             y=k.y +p2[i]
-#             if x<0 or x>=self.n:
-#                 continue
-#             if y<0 or y>=self.m:
-#                 continue
-#             if self.E[x][y]==-1:
-#                 continue
-#             temp=point(x,y,k)
-#             temp.G=k.G+1
-#             temp.H=math.sqrt(pow(x-self.end.x,2)+pow(y+self.end.y,2))
-#             self.E[x][y]=-1
-#             self.sets.put(temp)
-#             self.matrix[x][y].change("uncheck") #các ô đang trong trạng thái chờ duyệt
-#             self.matrix[x][y].draw(win)
-#             if temp.H == 0:
-#                 self.isFind=False
-#                 while temp is not None:
-#                     self.matrix[temp.x][temp.y].change('road' ) # vẽ ra tuyến đường tốt nhất
-#                     self.matrix[temp.x][temp.y].draw(win)
-#                     temp=temp.old
-#                 self.matrix[self.start.x][self.start.y].draw(win)
-#                 self.matrix[x][y].change("dis") #tọa đồ các điểm cần tìm
-#                 self.matrix[x][y].draw(win)
-# size=(1000,1000) #khai báo giao diện và chạy chương trình
-# win=pygame.display.set_mode(size)
-# isRun = True
-# clock=pygame.time.Clock()
-# M=makeMatrix(size)
-# M.drawF(win)
-# bf=False
-# while isRun:
-#     #win.fill((0,0,0))
-#     for event in pygame.event.get():
-#         if event.type==pygame.QUIT:
-#             isRun=False
-#     keys=pygame.key.get_pressed()
-#     if keys[pygame.K_SPACE]: #gán nút các cho phép chạy thuật toán
-#         bf = True
-    
-#     mouse= pygame.mouse.get_pressed()
-#     mousePos = pygame.mouse.get_pos()
-#     if keys[pygame.K_s]: # gán nút s cho phép vẽ ra vị trí bắt đầu cần tìm theo vị trí chuột
-#         M.drawStart(mousePos)
-#     if keys[pygame.K_d]: # gán nút s cho phép vẽ ra vị trí bắt đầu cần tìm theo vị trí chuột
-#         M.drawEnd(mousePos)
-            
-#     M.draw(win,mouse,mousePos)
-#     if bf:
-#         M.solve(win)
-#     pygame.display.flip()
-
-#Code nay chua chay thu dc : ) 
-import pygame 
+import pygame
 import math
 import queue
-class point:
-    def __init__(self, x,y,old=None):
+from collections import deque
+import time
+
+class Point:
+    def __init__(self, x, y, parent=None):
         self.x = x
         self.y = y
-        self.G = 0
-        self.H = 0
-        self.old = old
-#thư viện pygame
+        self.G = 0  
+        self.H = 0  
+        self.parent = parent
+
     def __gt__(self, other):
-        if self.G + self.H >= other.G + other.H:
-            return True
-        else:
-            return False
-class smallbox:
-    basecolor = (255,255,255)
-    def __init__(self,x,y):
+        return (self.G + self.H) >= (other.G + other.H)
+
+
+class SmallBox:
+    base_color = (255, 255, 255)
+
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-    def draw(self,win):
-        pygame.draw.rect(win,(0,0,0),(self.x,self.y,5,5))
-        pygame.draw.rect (win,self.basecolor,(self.x+1,self.y+1,3,3))
-    def change(self,state): #khai báo các màu cho bài toán mê cung
+        self.state = "empty"  # Default state
+
+    def draw(self, win):
+        pygame.draw.rect(win, (0, 0, 0), (self.x, self.y, 10, 10))  
+        pygame.draw.rect(win, self.base_color, (self.x + 1, self.y + 2, 6, 6))  
+
+    def change(self, state):
+        self.state = state
         if state == "obs":
-            self.basecolor=(34, 59, 245) #màu của chướng ngại vật xanh blue
+            self.base_color = (34, 59, 245)  
         elif state == "sou":
-            self.basecolor = (162, 50, 168) #màu của điểm xuất phát tím
+            self.base_color = (162, 50, 168)
         elif state == "dis":
-            self.basecolor = (255,0,0) #màu ô cần tìm đỏ
+            self.base_color = (255, 0, 0)  
         elif state == "check":
-            self.basecolor = (245, 245, 34) #màu của các ô đã được duyệt vàng
+            self.base_color = (245, 245, 34)  # Màu điểm đã kiểm tra
         elif state == "road":
-            self.basecolor = (224, 123, 57) # màu của tuyến đường tốt nhất da cam
+            self.base_color = (224, 123, 57)  
         elif state == "uncheck":
-            self.basecolor = (0,255,0) #màu của mấy ô đang chờ duyệt màu xanh lá cây
-class makeMatrix: #thủ tục để tạo ra 1 mảng ma trận ban đầu
-    def __init__(self,size):
-        self.matrix=[]
+            self.base_color = (0, 255, 0)  # Màu điểm chờ duyệt
+        elif state == "dfs_road":
+            self.base_color = (255, 105, 180)  # Hồng
+        elif state == "bfs_road":
+            self.base_color = (0, 0, 0)  # Đen
+
+
+class Matrix:
+    def __init__(self, size):
+        self.matrix = []
         self.size = size
-        self.start = point(0,0)
+        self.start = None
         self.end = None
-        self.n = size[0]//5
-        self.m = size[1]//5
-        self.E= [[0 for i in range(200)] for i in range (200)]
-        self.sets= queue.PriorityQueue()
-        self.isFind = True
-        for i in range(0, size[0]+5,5):
-            b=[]
-            for j in range(0,size[1]+5,5):
-                b.append(smallbox(i,j))
-            self.matrix.append(b) #A*
-    def drawEnd (self, mousepos): #hàm này để vẽ ra điểm kết thúc tức điểm chúng ta cần tìm
-        x = mousePos[0] //5
-        y = mousePos[1] //5
+        self.n = size[0] // 10  
+        self.m = size[1] // 10
+        self.E = [[0 for _ in range(self.m)] for _ in range(self.n)]
+        self.sets = queue.PriorityQueue()
+        self.stack = []
+        self.queue = deque()
+        self.is_find = True
+        self.a_star_path = []
+        self.dfs_path = []
+        self.bfs_path = []
+        self.a_star_time = 0
+        self.bfs_time = 0
+        self.dfs_time = 0
+
+        for i in range(0, size[0] + 10, 10):
+            row = []
+            for j in range(0, size[1] + 10, 10):
+                row.append(SmallBox(i, j))
+            self.matrix.append(row)
+
+    def draw_end(self, mouse_pos, win):
+        x = mouse_pos[0] // 10
+        y = mouse_pos[1] // 10
         self.matrix[x][y].change("dis")
         self.matrix[x][y].draw(win)
-        self.end = point(x,y)
-        self.E[x][y] = 0
-        t = [1,0,-1]
-        for i in range (0,3):
-            for j in range(0, 3):
-                self.E[x + t[i]][y + t[j]] = 0
-                self.matrix[x + t[i]][y + t[j]].change("dis")
-                self.matrix[x + t[i]][y + t[j]].draw(win)
-    def drawStart(self, mousepos): # hàm để vẽ ra điểm kết thúc ức điểm chúng ta cần tìm
-        x=mousepos[0] //5
-        y=mousepos[1] //5
+        self.end = Point(x, y)
+
+    def draw_start(self, mouse_pos, win):
+        x = mouse_pos[0] // 10
+        y = mouse_pos[1] // 10
         self.matrix[x][y].change("sou")
         self.matrix[x][y].draw(win)
-        self.start = point(x,y)
-        self.E[x][y] = 0
-        t = [1,0,-1]
-        for i in range (0,3):
-            for j in range(0, 3):
-                self.E[x + t[i]][y + t[j]] = 0
-                self.matrix[x + t[i]][y + t[j]].change("sou")
-                self.matrix[x + t[i]][y + t[j]].draw(win)
+        self.start = Point(x, y)
         self.sets.put(self.start)
-    def drawSE(self): # vẽ ra điểm đầu tien xuất phát tại mê cung
-        self.matrix[self.start.x][self.start.y].draw(win)
-        x = self.start.x
-        y = self.start.y
-        t = [1, 0, -1]
-        for i in range(0, 3):
-            for j in range (0, 3):
-                self.matrix[x + t[i]][y + t[j]].change("sou")
-                self.matrix[x + t[i]][y + t[j]].draw(win)
-    def draw(self, win , mouse,mousePos): #hàm để vexc chướng ngại vật cho mê cung thông qua chuột phải
+
+    def draw_obstacles(self, win, mouse, mouse_pos):
         if mouse[0]:
-            x=mousePos[0]//5
-            y= mousePos[1]//5
+            x = mouse_pos[0] // 10
+            y = mouse_pos[1] // 10
             self.matrix[x][y].change("obs")
             self.matrix[x][y].draw(win)
-            self.E[x][y]=-1
-            t=[1,0,-1]
-            for i in range (0,3):
-                for j in range (0, 3):
-                    self.E[x+t[i]][y+t[j]] = -1
-                    self.matrix[x+t[i]][y + t[j]].change("obs")
-                    self.matrix[x + t[i]][y + t[j]].draw(win)
-    def drawF(self,win):
-        for i in range (0, self.size[0]//5+1):
-            for j in range(0, self.size[1]//5 +1):
-                self.matrix[i][j].draw(win)
-    def solve (self, win): #nơi chứa thuật toán A* chính
-        self.drawSE()
-        t = [1,0,-1]
-        for i in range (0,3):
-            for j in range (0,3):
-                self.E[self.end.x + t[i]][self.end.y + t[j]] =0
-                self.matrix[self.end.x + t[i]][self.end.y + t[j]].change("dis")
-                self.matrix[self.end.x + t[i]][self.end.y + t[j]].draw(win)
-                self.E[self.end.x][self.end.y]=0
-        if self.isFind==False:
-            return
-        #print(self.isFind)
-        p1=[0,0,1,-1]
-        p2=[1,-1,0,0]
-        k=self.sets.get()
-        self.matrix[k.x][k.y].change("check") # duyệt qua các ô thì các ô sẽ chuyển sang màu vàng
-        self.matrix[k.x][k.y].draw(win)
-        for i in range(4):
-            x=k.x + p1[i]
-            y=k.y +p2[i]
-            if x<0 or x>=self.n:
-                continue
-            if y<0 or y>=self.m:
-                continue
-            if self.E[x][y]==-1:
-                continue
-            temp=point(x,y,k)
-            temp.G=k.G+1
-            temp.H=math.sqrt(pow(x-self.end.x,2)+pow(y+self.end.y,2))
-            self.E[x][y]=-1
-            self.sets.put(temp)
-            self.matrix[x][y].change("uncheck") #các ô đang trong trạng thái chờ duyệt
+            self.E[x][y] = -1
+
+    def draw_all(self, win):
+        for row in self.matrix:
+            for box in row:
+                box.draw(win)
+
+    def reset_search(self):
+        """Reset lại ma trận nhưng giữ nguyên điểm đầu, điểm cuối và chướng ngại vật."""
+        for i in range(self.n):
+            for j in range(self.m):
+                if self.matrix[i][j].state not in ["obs", "sou", "dis"]:
+                    self.E[i][j] = 0
+                    self.matrix[i][j].base_color = SmallBox.base_color
+        if self.start:
+            self.matrix[self.start.x][self.start.y].change("sou")
+        if self.end:
+            self.matrix[self.end.x][self.end.y].change("dis")
+
+        self.sets = queue.PriorityQueue()
+        self.stack = []
+        self.queue = deque()
+        self.a_star_path = []
+        self.dfs_path = []
+        self.bfs_path = []
+        self.a_star_time = 0
+        self.dfs_time = 0
+        self.bfs_time = 0
+        
+        if self.start:
+            self.sets.put(self.start)
+            self.stack.append(self.start)
+            self.queue.append(self.start)
+
+    def solve_a_star(self, win):
+        """Giải thuật A*."""
+        start_time = time.time()
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        
+        while not self.sets.empty():
+            current = self.sets.get()
+
+            if current.x == self.end.x and current.y == self.end.y:
+                while current:
+                    if self.matrix[current.x][current.y].state not in ["sou", "dis"]:
+                        self.matrix[current.x][current.y].change("road")
+                        self.a_star_path.append((current.x, current.y))
+                    self.matrix[current.x][current.y].draw(win)
+                    current = current.parent
+                return
+
+            self.matrix[current.x][current.y].change("check")
+            self.matrix[current.x][current.y].draw(win)
+            pygame.display.flip()
+
+            for dx, dy in directions:
+                nx, ny = current.x + dx, current.y + dy
+                if 0 <= nx < self.n and 0 <= ny < self.m and self.E[nx][ny] == 0:
+                    neighbor = Point(nx, ny, current)
+                    neighbor.G = current.G + 1
+                    "neighbor.H = math.sqrt((nx - self.end.x) ** 2 + (ny - self.end.y) ** 2)"
+                    neighbor.H = abs(nx - self.end.x) + abs(ny - self.end.y)
+                    self.sets.put(neighbor)
+                    self.E[nx][ny] = -1
+                    self.matrix[nx][ny].change("uncheck")
+                    self.matrix[nx][ny].draw(win)
+            end_time = time.time()
+            self.a_star_time = end_time - start_time 
+
+    def solve_dfs(self, win):
+        """Giải thuật DFS."""
+        start_time = time.time()
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        
+        while self.stack:
+            current = self.stack.pop()
+
+            if current.x == self.end.x and current.y == self.end.y:
+                while current:
+                    if self.matrix[current.x][current.y].state not in ["sou", "dis"]:
+                        self.matrix[current.x][current.y].change("dfs_road")
+                        self.dfs_path.append((current.x, current.y))
+                    self.matrix[current.x][current.y].draw(win)
+                    current = current.parent
+                return
+
+            self.matrix[current.x][current.y].change("check")
+            self.matrix[current.x][current.y].draw(win)
+            pygame.display.flip()
+
+            for dx, dy in directions:
+                nx, ny = current.x + dx, current.y + dy
+                if 0 <= nx < self.n and 0 <= ny < self.m and self.E[nx][ny] == 0:
+                    neighbor = Point(nx, ny, current)
+                    self.stack.append(neighbor)
+                    self.E[nx][ny] = -1
+                    self.matrix[nx][ny].change("uncheck")
+                    self.matrix[nx][ny].draw(win)
+            end_time = time.time()
+            self.dfs_time = end_time - start_time 
+
+    def solve_bfs(self, win):
+        """Giải thuật BFS."""
+        start_time = time.time()
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        
+        while self.queue:
+            current = self.queue.popleft()
+
+            if current.x == self.end.x and current.y == self.end.y:
+                while current:
+                    if self.matrix[current.x][current.y].state not in ["sou", "dis"]:
+                        self.matrix[current.x][current.y].change("bfs_road")
+                        self.bfs_path.append((current.x, current.y))
+                    self.matrix[current.x][current.y].draw(win)
+                    current = current.parent
+                return
+
+            self.matrix[current.x][current.y].change("check")
+            self.matrix[current.x][current.y].draw(win)
+            pygame.display.flip()
+
+            for dx, dy in directions:
+                nx, ny = current.x + dx, current.y + dy
+                if 0 <= nx < self.n and 0 <= ny < self.m and self.E[nx][ny] == 0:
+                    neighbor = Point(nx, ny, current)
+                    self.queue.append(neighbor)
+                    self.E[nx][ny] = -1
+                    self.matrix[nx][ny].change("uncheck")
+                    self.matrix[nx][ny].draw(win)
+            end_time = time.time()
+            self.bfs_time = end_time - start_time 
+
+    def show_paths(self, win):
+        """Hiển thị lại các đường đi của các thuật toán."""
+        for x, y in self.a_star_path:
+            self.matrix[x][y].change("road")
             self.matrix[x][y].draw(win)
-            if temp.H == 0:
-                self.isFind=False
-                while temp is not None:
-                    self.matrix[temp.x][temp.y].change('road' ) # vẽ ra tuyến đường tốt nhất
-                    self.matrix[temp.x][temp.y].draw(win)
-                    temp=temp.old
-                self.matrix[self.start.x][self.start.y].draw(win)
-                self.matrix[x][y].change("dis") #tọa đồ các điểm cần tìm
-                self.matrix[x][y].draw(win)
-size=(1000,1000) #khai báo giao diện và chạy chương trình
-win=pygame.display.set_mode(size)
-isRun = True
-clock=pygame.time.Clock()
-M=makeMatrix(size)
-M.drawF(win)
-bf=False
-while isRun:
-    #win.fill((0,0,0))
+
+        for x, y in self.dfs_path:
+            self.matrix[x][y].change("dfs_road")
+            self.matrix[x][y].draw(win)
+
+        for x, y in self.bfs_path:
+            self.matrix[x][y].change("bfs_road")
+            self.matrix[x][y].draw(win)
+
+    def calculate_lengths_and_display(self, win):
+        """Tính toán và hiển thị độ dài quãng đường của các thuật toán."""
+        font = pygame.font.Font(None, 30)
+
+        a_star_length = len(self.a_star_path)
+        dfs_length = len(self.dfs_path)
+        bfs_length = len(self.bfs_path)
+
+        texts = [
+            f"A* Path Length: {a_star_length} | Time: {self.a_star_time:.4f}s",
+            f"DFS Path Length: {dfs_length} | Time: {self.dfs_time:.4f}s",
+            f"BFS Path Length: {bfs_length} | Time: {self.bfs_time:.4f}s"
+        ]
+        start_y = 20
+        pygame.draw.rect(win, (255, 255, 255), (10, 10, 400, len(texts) * 30 + 10))
+
+        for i, text in enumerate(texts):
+            render = font.render(text, True, (0, 0, 0))
+            win.blit(render, (15, 15 + i * 30))
+
+pygame.init()
+size = (1000, 1000)
+win = pygame.display.set_mode(size)
+pygame.display.set_caption("Pathfinding Visualizer")
+clock = pygame.time.Clock()
+
+matrix = Matrix(size)
+matrix.draw_all(win)
+
+running = True
+start_set = False
+end_set = False
+
+while running:
     for event in pygame.event.get():
-        if event.type==pygame.QUIT:
-            isRun=False
-    keys=pygame.key.get_pressed()
-    if keys[pygame.K_SPACE]: #gán nút các cho phép chạy thuật toán
-        bf = True
-    
-    mouse= pygame.mouse.get_pressed()
-    mousePos = pygame.mouse.get_pos()
-    if keys[pygame.K_s]: # gán nút s cho phép vẽ ra vị trí bắt đầu cần tìm theo vị trí chuột
-        M.drawStart(mousePos)
-    if keys[pygame.K_d]: # gán nút s cho phép vẽ ra vị trí bắt đầu cần tìm theo vị trí chuột
-        M.drawEnd(mousePos)
-            
-    M.draw(win,mouse,mousePos)
-    if bf:
-        M.solve(win)
-    pygame.display.flip()
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+    mouse = pygame.mouse.get_pressed()
+    mouse_pos = pygame.mouse.get_pos()
+
+    if keys[pygame.K_s] and not start_set:  # Đặt điểm bắt đầu
+        matrix.draw_start(mouse_pos, win)
+        start_set = True
+
+    if keys[pygame.K_e] and not end_set:  # Đặt điểm đích
+        matrix.draw_end(mouse_pos, win)
+        end_set = True
+
+    if mouse[0]:  # Vẽ chướng ngại vật
+        matrix.draw_obstacles(win, mouse, mouse_pos)
+
+    if keys[pygame.K_r]:  # Reset
+        matrix.reset_search()
+
+    if keys[pygame.K_a]:  # Chạy A*
+        matrix.reset_search()
+        matrix.solve_a_star(win)
+
+    if keys[pygame.K_d]:  # Chạy DFS
+        matrix.reset_search()
+        matrix.solve_dfs(win)
+
+    if keys[pygame.K_b]:  # Chạy BFS
+        matrix.reset_search()
+        matrix.solve_bfs(win)
+
+    if keys[pygame.K_SPACE]:  # Chạy tất cả thuật toán
+        matrix.reset_search()
+        matrix.solve_a_star(win)  # Chạy A*
+        matrix.solve_dfs(win)     # Chạy DFS
+        matrix.solve_bfs(win)     # Chạy BFS
+        # Hiển thị lại các đường đi của A*, DFS và BFS
+        matrix.show_paths(win)
+
+    # Hiển thị độ dài quãng đường trên cửa sổ
+    matrix.draw_all(win)
+    matrix.calculate_lengths_and_display(win)
+    pygame.display.update()
+    clock.tick(60)
+
+pygame.quit()
